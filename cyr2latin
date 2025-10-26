@@ -1,0 +1,176 @@
+#!/usr/bin/ruby
+# coding: utf-8
+Version='1.00'
+Myname = File.basename($0)
+require 'optparse'
+require 'colorize'
+require 'ostruct'
+
+<<'DOC'
+= cyr2latin - transliterate cyrillic to latin
+
+= Synopsis
+cyr2latin [options] [file...] 
+
+-k,--$o.keep	$o.keep accent markss
+-h,--help	print this help and exit
+-V,--version	print version and exit
+
+= Description
+cyr2latin transliterates cyrillic characters to latin. Currently only Russian
+cyrillic is understood, and the output is for phonetic Dutch. Accent marks in
+the input are removed, unless the |--$o.keep| option is used.
+
+= Author
+[Wybo Dekker](wybodekker@me.com)
+
+= Copyright
+Released under the [GNU General Public License](www.gnu.org/copyleft/gpl.html)
+DOC
+
+def die(m)
+   STDERR.puts "#{Myname}: #{m}".red
+   exit 1
+end
+
+# Option defaults:
+$o = OpenStruct.new(
+  :keep      => false,
+  :testlatin => false,
+)
+
+OptionParser.new(
+   banner = <<~EOD,
+	#{Myname} - swap to files or directories\n
+	Usage: #{Myname} [options] file_or_dir1 file_or_dir2\n
+	Options:
+	EOD
+   width = 15, # 2x8-1
+   indent = ''
+) do |opts|
+   
+   opts.on('-k','--keep',
+      '$o.keep accent marks; they are removed by default'
+   ) do
+      $o.keep = true
+   end
+   opts.on('-t','--test',
+      'report error when input contains latin characters'
+   ) do
+      $o.testlatin = true
+   end
+
+   opts.on('-h','--help',
+      'print this help and exit'
+   ) do
+      puts opts.to_s.sub(/^ *-I\n/,'')
+      exit
+   end
+
+   opts.on('-V','--version',
+      'print version and exit'
+   ) do
+      puts opts.version
+      exit
+   end
+
+   opts.on('-I') do
+      system("instscript #{Myname}")  or
+         die 'the -I option is for developers only'
+      exit
+   end
+   opts.parse!
+end
+
+while x=gets
+   if $o.testlatin
+      l = x.tr('^A-Za-z','')
+      if l.size > 0
+         puts "illegal input: contains latin characters #{l}"
+         next
+      end
+   end
+   x.gsub!(/́/,'') unless $o.keep
+   puts x.gsub(/\<е/,'je').
+   gsub(/\<Е/,'Je').
+   gsub(/([БВГДЖЗЙКЛМНПРСТФХЦЧШЩЪбвгджзйклмнпрстфхцчшщъ])е/,'\1e').
+   gsub(/е/,'je').
+   gsub(/Е/,'Je').
+   gsub(/([ЖЧШЩжчшщ])ё/,'\1o').
+   gsub(/([ЖЧШЩжчшщ])Ё/,'\1O').
+   gsub(/ьи/,'ji').
+   gsub(/ё/,'jo').
+   gsub(/а/,'a').
+   gsub(/б/,'b').
+   gsub(/в/,'v').
+   gsub(/г/,'g'). # oek: h
+   gsub(/д/,'d').
+   gsub(/ж/,'zj').
+   gsub(/з/,'z').
+   gsub(/ий/,'i').
+   gsub(/и/,'i').
+   gsub(/й/,'j').
+   gsub(/к/,'k').
+   gsub(/л/,'l').
+   gsub(/м/,'m').
+   gsub(/н/,'n').
+   gsub(/о/,'o').
+   gsub(/п/,'p').
+   gsub(/р/,'r').
+   gsub(/с/,'s').
+   gsub(/т/,'t').
+   gsub(/у/,'oe').
+   gsub(/ф/,'f').
+   gsub(/х/,'ch').
+   gsub(/ц/,'ts').
+   gsub(/ч/,'tsj').
+   gsub(/ш/,'sj').
+   gsub(/щ/,'sjtsj').
+   gsub(/ъ/,'').
+   gsub(/ы/,'y').
+   gsub(/ь/,'').
+   gsub(/э/,'e').
+   gsub(/ю/,'joe').
+   gsub(/я/,'ja').
+   gsub(/Ё/,'Jo').
+   gsub(/А/,'A').
+   gsub(/Б/,'B').
+   gsub(/В/,'V').
+   gsub(/Г/,'G').
+   gsub(/Д/,'D').
+   gsub(/Ж/,'Zj').
+   gsub(/З/,'Z').
+   gsub(/И/,'I').
+   gsub(/Й/,'J').
+   gsub(/К/,'K').
+   gsub(/Л/,'L').
+   gsub(/М/,'M').
+   gsub(/Н/,'N').
+   gsub(/О/,'O').
+   gsub(/П/,'P').
+   gsub(/Р/,'R').
+   gsub(/С/,'S').
+   gsub(/Т/,'T').
+   gsub(/У/,'Oe').
+   gsub(/Ф/,'F').
+   gsub(/Х/,'Ch').
+   gsub(/Ц/,'Ts').
+   gsub(/Ч/,'Tsj').
+   gsub(/Ш/,'Sj').
+   gsub(/Щ/,'Sjtsj').
+   gsub(/Ъ/,'').
+   gsub(/Ы/,'Y').
+   gsub(/Ь/,'').
+   gsub(/Э/,'E').
+   gsub(/Ю/,'Joe').
+   gsub(/Я/,'Ja').
+   # exceptions:
+   gsub(/Toergenev/,'Toergenjev')
+end
+
+# Oekraïens г = h, ґ = g, є = je, и = y, ï = ï, i = i, ’ = ”
+# Witrussisch г = h, i = i, ў = ŭ
+# Bulgaars х = h, щ = št, ъ = ă (tot 1945 ook ѣ = ě en ѫ = ă)
+# Macedonisch х = h, ј = j, љ = lj, њ = nj, џ = dž, ѕ = dz, ѓ = ǵ, ќ = ḱ
+# Servisch х = h, ј = j, љ = lj, њ = nj, џ = dž, ђ = đ, ћ = ć
+
