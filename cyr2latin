@@ -17,13 +17,13 @@ cyr2latin [options] [file...]
 -h		print this help and exit
 -H, --help	print full documentation and exit
 -V, --version	print version and exit
--k, --keep	$o.keep accent marks; they are removed by default
+-k, --keep	keep accent marks; they are removed by default
 -t, --test	report error when input contains latin characters
 
 = Description
 cyr2latin transliterates cyrillic characters to latin. Currently only Russian
 cyrillic is understood, and the output is for phonetic Dutch. Accent marks in
-the input are removed, unless the |--$o.keep| option is used.
+the input are removed, unless the |--keep| option is used.
 
 = Author
 [Wybo Dekker](wybodekker@me.com)
@@ -50,7 +50,7 @@ $o = OpenStruct.new(
 
 OptionParser.new(
    banner = <<~EOD,
-	#{Myname} - swap to files or directories\n
+	#{Myname} - transliterate cyrillic to latin
 	Usage: #{Myname} [options] file_or_dir1 file_or_dir2\n
 	Options:
 	EOD
@@ -76,7 +76,7 @@ OptionParser.new(
   end
    
    opts.on('-k','--keep',
-      '$o.keep accent marks; they are removed by default'
+      'keep accent marks; they are removed by default'
    ) do
       $o.keep = true
    end
@@ -170,6 +170,7 @@ while x=gets
    gsub(/Э/,'E').
    gsub(/Ю/,'Joe').
    gsub(/Я/,'Ja').
+   gsub(/ѣ/,'e').
    # exceptions:
    gsub(/Toergenev/,'Toergenjev')
 end
