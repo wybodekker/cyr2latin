@@ -1,20 +1,24 @@
 #!/usr/bin/ruby
 # coding: utf-8
-Version='1.00'
+Version='1.01'
 Myname = File.basename($0)
 require 'optparse'
 require 'colorize'
 require 'ostruct'
 
+Help=
 <<'DOC'
 = cyr2latin - transliterate cyrillic to latin
 
 = Synopsis
 cyr2latin [options] [file...] 
 
--k,--$o.keep	$o.keep accent markss
--h,--help	print this help and exit
--V,--version	print version and exit
+= Options
+-h		print this help and exit
+-H, --help	print full documentation and exit
+-V, --version	print version and exit
+-k, --keep	$o.keep accent marks; they are removed by default
+-t, --test	report error when input contains latin characters
 
 = Description
 cyr2latin transliterates cyrillic characters to latin. Currently only Russian
@@ -33,6 +37,11 @@ def die(m)
    exit 1
 end
 
+def help
+  nv="-#{Myname}-#{Version.sub(/\./,'\\.')} press h for help, q to quit"
+  IO.popen("less -P'#{nv}'",'w') do |pipe| pipe.puts Help end
+end
+
 # Option defaults:
 $o = OpenStruct.new(
   :keep      => false,
@@ -48,6 +57,23 @@ OptionParser.new(
    width = 15, # 2x8-1
    indent = ''
 ) do |opts|
+  opts.on('-h','print this help and exit') do
+     puts opts.to_a.delete_if { |x| x =~ /—$/}
+     exit
+  end
+  opts.on('-H','--help', 'print full documentation and exit') do
+     help
+     exit
+  end
+  opts.on('-V','--version', 'print version and exit') do
+      puts Version
+      exit
+  end
+  opts.on('-I','—') do
+     system("instscript #{Myname}") or
+         die 'the -I option is for developers only'
+     exit
+  end
    
    opts.on('-k','--keep',
       '$o.keep accent marks; they are removed by default'
@@ -58,26 +84,6 @@ OptionParser.new(
       'report error when input contains latin characters'
    ) do
       $o.testlatin = true
-   end
-
-   opts.on('-h','--help',
-      'print this help and exit'
-   ) do
-      puts opts.to_s.sub(/^ *-I\n/,'')
-      exit
-   end
-
-   opts.on('-V','--version',
-      'print version and exit'
-   ) do
-      puts opts.version
-      exit
-   end
-
-   opts.on('-I') do
-      system("instscript #{Myname}")  or
-         die 'the -I option is for developers only'
-      exit
    end
    opts.parse!
 end
